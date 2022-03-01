@@ -1,0 +1,6 @@
+JunimoKart/bin/Debug/*
+!JunimoKart/bin/Debug/Content
+JunimoKart/bin/Release
+obj
+lib
+.vs
