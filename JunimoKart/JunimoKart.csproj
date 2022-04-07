@@ -9,6 +9,8 @@
     <RootNamespace>JunimoKart</RootNamespace>
     <AssemblyName>JunimoKart</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <!-- <XnaFrameworkVersion>v4.0</XnaFrameworkVersion>
+    <XnaPlatform>Windows</XnaPlatform> -->
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
@@ -98,10 +100,17 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <NestedContentProject Include="Content\JunimoKart.contentproj">
+      <Project>935F72E1-0493-499D-ABDB-A65808B8D304</Project>
+      <Visible>false</Visible>
+    </NestedContentProject>
+  </ItemGroup>
+  <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\MineCart.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\Microsoft.Xna.GameStudio.targets" /> -->
 </Project>

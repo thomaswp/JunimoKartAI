@@ -505,7 +505,7 @@ namespace StardewValley.Minigames
 				if (_generatedTracks != null && _generatedTracks.Count > 0 && generateCheckpoint && !_generatedCheckpoint)
 				{
 					_generatedCheckpoint = true;
-					_generatedTracks.OrderBy((Track o) => o.position.X);
+					_generatedTracks.Sort((Track o1, Track o2) => Math.Sign(o1.position.X - o2.position.X));
 					_game.AddCheckpoint((int)(_generatedTracks[0].position.X / (float)_game.tileSize));
 				}
 			}
@@ -1442,7 +1442,7 @@ namespace StardewValley.Minigames
 
 			protected Dictionary<int, KeyValuePair<ObstacleTypes, float>> _obstacleIndices = new Dictionary<int, KeyValuePair<ObstacleTypes, float>>();
 
-			protected Func<Track, BaseTrackGenerator, bool> _pickupFunction;
+			protected List<Func<Track, BaseTrackGenerator, bool>> _pickupFunction = new List<Func<Track, BaseTrackGenerator, bool>>();
 
 			public static bool FlatsOnly(Track track, BaseTrackGenerator generator)
 			{
@@ -1486,7 +1486,7 @@ namespace StardewValley.Minigames
 
 			public T AddPickupFunction<T>(Func<Track, BaseTrackGenerator, bool> pickup_spawn_function) where T : BaseTrackGenerator
 			{
-				_pickupFunction = (Func<Track, BaseTrackGenerator, bool>)Delegate.Combine(_pickupFunction, pickup_spawn_function);
+				_pickupFunction.Add(pickup_spawn_function);
 				return this as T;
 			}
 
@@ -1516,10 +1516,9 @@ namespace StardewValley.Minigames
 				{
 					return track;
 				}
-				Delegate[] invocationList = _pickupFunction.GetInvocationList();
-				for (int i = 0; i < invocationList.Length; i++)
+				for (int i = 0; i < _pickupFunction.Count; i++)
 				{
-					if (!((Func<Track, BaseTrackGenerator, bool>)invocationList[i])(track, this))
+					if (!_pickupFunction[i](track, this))
 					{
 						return track;
 					}
@@ -1547,7 +1546,7 @@ namespace StardewValley.Minigames
 			{
 				if (_game.generatorPosition.X < _game.distanceToTravel && _generatedTracks.Count != 0)
 				{
-					_generatedTracks.OrderBy((Track o) => o.position.X);
+					_generatedTracks.Sort((Track o1, Track o2) => Math.Sign(o1.position.X - o2.position.X));
 					if (_obstacleIndices != null && _obstacleIndices.Count != 0)
 					{
 						foreach (int index in _obstacleIndices.Keys)
@@ -1624,7 +1623,10 @@ namespace StardewValley.Minigames
 
 			protected bool _destroyed;
 
-			public Vector2 drawnPosition => position - new Vector2(_game.screenLeftBound, 0f);
+			public Vector2 drawnPosition
+			{
+				get { return position - new Vector2(_game.screenLeftBound, 0f); }
+			}
 
 			public virtual void OnPlayerReset()
 			{
@@ -3098,6 +3100,8 @@ namespace StardewValley.Minigames
 
 			public TrackType trackType;
 
+			public bool highlighted;
+
 			public Track(TrackType type, bool showSecondTile)
 			{
 				trackType = type;
@@ -3110,9 +3114,11 @@ namespace StardewValley.Minigames
 
 			public override void _Draw(SpriteBatch b)
 			{
+				Color tint = _game.trackTint;
+				if (highlighted) tint = Color.Yellow;
 				if (trackType == TrackType.SlimeUpSlope)
 				{
-					b.Draw(_game.texture, _game.TransformDraw(new Vector2(base.drawnPosition.X, base.drawnPosition.Y - 32f)), new Rectangle(192, 144, 16, 32), _game.trackTint, 0f, Vector2.Zero, _game.GetPixelScale(), SpriteEffects.None, 0.5f + base.drawnPosition.Y * 1E-05f);
+					b.Draw(_game.texture, _game.TransformDraw(new Vector2(base.drawnPosition.X, base.drawnPosition.Y - 32f)), new Rectangle(192, 144, 16, 32), tint, 0f, Vector2.Zero, _game.GetPixelScale(), SpriteEffects.None, 0.5f + base.drawnPosition.Y * 1E-05f);
 					b.Draw(_game.texture, _game.TransformDraw(new Vector2(base.drawnPosition.X, base.drawnPosition.Y - 32f)), new Rectangle(160 + (int)trackType * 16, 144, 16, 32), Color.White, 0f, Vector2.Zero, _game.GetPixelScale(), SpriteEffects.None, 0.5f + base.drawnPosition.Y * 1E-05f - 0.0001f);
 				}
 				else if (trackType >= TrackType.MushroomLeft && trackType <= TrackType.MushroomRight)
@@ -3128,11 +3134,11 @@ namespace StardewValley.Minigames
 				}
 				else if (_game.currentTheme == 4 && (trackType == TrackType.UpSlope || trackType == TrackType.DownSlope))
 				{
-					b.Draw(_game.texture, _game.TransformDraw(new Vector2(base.drawnPosition.X, base.drawnPosition.Y - 32f)), new Rectangle(256 + (int)(trackType - 2) * 16, 144, 16, 32), _game.trackTint, 0f, Vector2.Zero, _game.GetPixelScale(), SpriteEffects.None, 0.5f + base.drawnPosition.Y * 1E-05f);
+					b.Draw(_game.texture, _game.TransformDraw(new Vector2(base.drawnPosition.X, base.drawnPosition.Y - 32f)), new Rectangle(256 + (int)(trackType - 2) * 16, 144, 16, 32), tint, 0f, Vector2.Zero, _game.GetPixelScale(), SpriteEffects.None, 0.5f + base.drawnPosition.Y * 1E-05f);
 				}
 				else
 				{
-					b.Draw(_game.texture, _game.TransformDraw(new Vector2(base.drawnPosition.X, base.drawnPosition.Y - 32f)), new Rectangle(160 + (int)trackType * 16, 144, 16, 32), _game.trackTint, 0f, Vector2.Zero, _game.GetPixelScale(), SpriteEffects.None, 0.5f + base.drawnPosition.Y * 1E-05f);
+					b.Draw(_game.texture, _game.TransformDraw(new Vector2(base.drawnPosition.X, base.drawnPosition.Y - 32f)), new Rectangle(160 + (int)trackType * 16, 144, 16, 32), tint, 0f, Vector2.Zero, _game.GetPixelScale(), SpriteEffects.None, 0.5f + base.drawnPosition.Y * 1E-05f);
 				}
 				if (trackType == TrackType.MushroomLeft || trackType == TrackType.MushroomRight)
 				{
@@ -3152,7 +3158,7 @@ namespace StardewValley.Minigames
 				bool flipper = _showSecondTile;
 				for (float y = base.drawnPosition.Y; y < (float)_game.screenHeight; y += (float)_game.tileSize)
 				{
-					b.Draw(_game.texture, _game.TransformDraw(new Vector2(base.drawnPosition.X, y)), (_game.currentTheme == 4) ? new Rectangle(16 + (flipper ? 1 : 0) * 16, 160, 16, 16) : new Rectangle(16 + (flipper ? 1 : 0) * 16, 32, 16, 16), _game.trackTint, 0f, Vector2.Zero, _game.GetPixelScale(), SpriteEffects.None, 0.5f + base.drawnPosition.Y * 1E-05f + 0.01f);
+					b.Draw(_game.texture, _game.TransformDraw(new Vector2(base.drawnPosition.X, y)), (_game.currentTheme == 4) ? new Rectangle(16 + (flipper ? 1 : 0) * 16, 160, 16, 16) : new Rectangle(16 + (flipper ? 1 : 0) * 16, 32, 16, 16), tint, 0f, Vector2.Zero, _game.GetPixelScale(), SpriteEffects.None, 0.5f + base.drawnPosition.Y * 1E-05f + 0.01f);
 					b.Draw(_game.texture, _game.TransformDraw(new Vector2(base.drawnPosition.X, y)), (_game.currentTheme == 4) ? new Rectangle(16 + (flipper ? 1 : 0) * 16, 160, 16, 16) : new Rectangle(16 + (flipper ? 1 : 0) * 16, 32, 16, 16), _game.trackShadowTint * darkness, 0f, Vector2.Zero, _game.GetPixelScale(), SpriteEffects.None, 0.5f + base.drawnPosition.Y * 1E-05f + 0.005f);
 					darkness += 0.1f;
 					flipper = !flipper;
@@ -3193,9 +3199,14 @@ namespace StardewValley.Minigames
 
             public override string ToString()
             {
-				return $"{position}:{trackType}";
+				return position + ":" + trackType;
 
 			}
+
+            internal void highlight()
+            {
+				highlighted = true;
+            }
         }
 
 		public class PlayerMineCartCharacter : MineCartCharacter, ICollideable
@@ -3323,7 +3334,8 @@ namespace StardewValley.Minigames
 
             public override string ToString()
             {
-				return $"{position.ToString()}: {currentTrackType}, Grounded:{_grounded}, Jumping:{_jumping}, Held:{jumpHeld}";
+				return String.Format("{0}: {1}, Grounded:{2}, Jumping:{3}, Held:{4}",
+					position.ToString(), currentTrackType, _grounded, _jumping, jumpHeld);
             }
         }
 
@@ -3902,7 +3914,7 @@ namespace StardewValley.Minigames
 
 		private int screenWidth;
 
-		private int screenHeight;
+		public int screenHeight;
 
 		public int tileSize;
 
@@ -4042,9 +4054,9 @@ namespace StardewValley.Minigames
 
 		public bool _wasJustChatting;
 
-		public double totalTime => _totalTime;
+		public double totalTime { get { return _totalTime; } }
 
-		public double totalTimeMS => _totalTime * 1000.0;
+		public double totalTimeMS { get { return _totalTime * 1000.0; } }
 
 		public MineCart(int whichTheme, int mode)
 		{
@@ -4319,7 +4331,7 @@ namespace StardewValley.Minigames
 				_tracks[x] = new List<Track>();
 			}
 			_tracks[x].Add(track_object);
-			_tracks[x].OrderBy((Track o) => o.position.Y);
+			_tracks[x].Sort((Track o1, Track o2) => Math.Sign(o1.position.Y - o2.position.Y));
 			return track;
 		}
 
@@ -6401,12 +6413,13 @@ namespace StardewValley.Minigames
 			{
 				_shakeOffset = Vector2.Zero;
 			}
-			Rectangle cached_scissor_rect = b.GraphicsDevice.ScissorRectangle;
-			Game1.isUsingBackToFrontSorting = true;
-			b.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp, null, Utility.ScissorEnabled);
-			Rectangle scissor_rect = new Rectangle((int)upperLeft.X, (int)upperLeft.Y, (int)((float)screenWidth * pixelScale), (int)((float)screenHeight * pixelScale));
-			scissor_rect = Utility.ConstrainScissorRectToScreen(scissor_rect);
-			b.GraphicsDevice.ScissorRectangle = scissor_rect;
+			//Rectangle cached_scissor_rect = b.GraphicsDevice.ScissorRectangle;
+			//Game1.isUsingBackToFrontSorting = true;
+			//b.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp, null, Utility.ScissorEnabled);
+			//Rectangle scissor_rect = new Rectangle((int)upperLeft.X, (int)upperLeft.Y, (int)((float)screenWidth * pixelScale), (int)((float)screenHeight * pixelScale));
+			//scissor_rect = Utility.ConstrainScissorRectToScreen(scissor_rect);
+			//b.GraphicsDevice.ScissorRectangle = scissor_rect;
+			b.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp, null, RasterizerState.CullNone);
 			if (gameState != GameStates.Map)
 			{
 				if (gameState == GameStates.FruitsSummary)
@@ -6462,15 +6475,18 @@ namespace StardewValley.Minigames
 							color = Utility.GetPrismaticColor();
 						}
 						KeyValuePair<string, int> score = _currentHighScores[i2];
-						int score_text_width = (int)Game1.dialogueFont.MeasureString(string.Concat(score.Value)).X / 4;
-						b.DrawString(Game1.dialogueFont, "#" + (i2 + 1), TransformDraw(draw_position), color, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.199f);
-						b.DrawString(Game1.dialogueFont, score.Key, TransformDraw(draw_position + new Vector2(16f, 0f)), color, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.199f);
-						b.DrawString(Game1.dialogueFont, string.Concat(score.Value), TransformDraw(draw_position + score_offset - new Vector2(score_text_width, 0f)), color, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.199f);
-						Vector2 shadow_offset = new Vector2(1f, 1f);
-						b.DrawString(Game1.dialogueFont, "#" + (i2 + 1), TransformDraw(draw_position + shadow_offset), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1999f);
-						b.DrawString(Game1.dialogueFont, score.Key, TransformDraw(draw_position + new Vector2(16f, 0f) + shadow_offset), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1999f);
-						b.DrawString(Game1.dialogueFont, string.Concat(score.Value), TransformDraw(draw_position + score_offset - new Vector2(score_text_width, 0f) + shadow_offset), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1999f);
-						draw_position.Y += 10f;
+						if (Game1.dialogueFont != null)
+						{
+							int score_text_width = (int)Game1.dialogueFont.MeasureString(string.Concat(score.Value)).X / 4;
+							b.DrawString(Game1.dialogueFont, "#" + (i2 + 1), TransformDraw(draw_position), color, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.199f);
+							b.DrawString(Game1.dialogueFont, score.Key, TransformDraw(draw_position + new Vector2(16f, 0f)), color, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.199f);
+							b.DrawString(Game1.dialogueFont, string.Concat(score.Value), TransformDraw(draw_position + score_offset - new Vector2(score_text_width, 0f)), color, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.199f);
+							Vector2 shadow_offset = new Vector2(1f, 1f);
+							b.DrawString(Game1.dialogueFont, "#" + (i2 + 1), TransformDraw(draw_position + shadow_offset), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1999f);
+							b.DrawString(Game1.dialogueFont, score.Key, TransformDraw(draw_position + new Vector2(16f, 0f) + shadow_offset), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1999f);
+							b.DrawString(Game1.dialogueFont, string.Concat(score.Value), TransformDraw(draw_position + score_offset - new Vector2(score_text_width, 0f) + shadow_offset), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1999f);
+							draw_position.Y += 10f;
+						}
 					}
 				}
 			}
@@ -6490,7 +6506,10 @@ namespace StardewValley.Minigames
 				if (gameState == GameStates.Cutscene)
 				{
 					_ = GetPixelScale() / 4f;
-					b.DrawString(Game1.dialogueFont, cutsceneText, TransformDraw(new Vector2(screenWidth / 2 - (int)(Game1.dialogueFont.MeasureString(cutsceneText).X / 2f / 4f), 32f)), Color.White, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.199f);
+					if (Game1.dialogueFont != null)
+                    {
+						b.DrawString(Game1.dialogueFont, cutsceneText, TransformDraw(new Vector2(screenWidth / 2 - (int)(Game1.dialogueFont.MeasureString(cutsceneText).X / 2f / 4f), 32f)), Color.White, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.199f);
+                    }
 				}
 				else
 				{
@@ -6509,12 +6528,15 @@ namespace StardewValley.Minigames
 				Vector2 draw_position2 = new Vector2(4f, 4f);
 				if (gameMode == 2)
 				{
-					string txtbestScore = "Best: "; //Game1.content.LoadString("Strings\\StringsFromCSFiles:MineCart.cs.12115");
-					b.DrawString(Game1.dialogueFont, "Score: " + score, TransformDraw(draw_position2), Color.White, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1f);
-					b.DrawString(Game1.dialogueFont, "Score: " + score, TransformDraw(draw_position2 + new Vector2(1f, 1f)), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.11f);
-					draw_position2.Y += 10f;
-					b.DrawString(Game1.dialogueFont, txtbestScore + currentHighScore, TransformDraw(draw_position2), Color.White, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1f);
-					b.DrawString(Game1.dialogueFont, txtbestScore + currentHighScore, TransformDraw(draw_position2 + new Vector2(1f, 1f)), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.11f);
+					if (Game1.dialogueFont != null)
+					{
+						string txtbestScore = "Best: "; //Game1.content.LoadString("Strings\\StringsFromCSFiles:MineCart.cs.12115");
+						b.DrawString(Game1.dialogueFont, "Score: " + score, TransformDraw(draw_position2), Color.White, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1f);
+						b.DrawString(Game1.dialogueFont, "Score: " + score, TransformDraw(draw_position2 + new Vector2(1f, 1f)), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.11f);
+						draw_position2.Y += 10f;
+						b.DrawString(Game1.dialogueFont, txtbestScore + currentHighScore, TransformDraw(draw_position2), Color.White, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1f);
+						b.DrawString(Game1.dialogueFont, txtbestScore + currentHighScore, TransformDraw(draw_position2 + new Vector2(1f, 1f)), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.11f);
+					}
 				}
 				else
 				{
@@ -6568,13 +6590,16 @@ namespace StardewValley.Minigames
 					b.Draw(texture, TransformDraw(draw_position2), new Rectangle(0, 272, 9, 11), Color.White, 0f, new Vector2(0f, 0f), GetPixelScale(), SpriteEffects.None, 0.07f);
 					b.Draw(texture, TransformDraw(draw_position2 + new Vector2(1f, 1f)), new Rectangle(0, 272, 9, 11), Color.Black, 0f, new Vector2(0f, 0f), GetPixelScale(), SpriteEffects.None, 0.08f);
 					draw_position2.X += 12f;
-					b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2), Color.White, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.01f);
-					b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2 + new Vector2(1f, 1f)) + new Vector2(-3f, -3f), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.02f);
-					b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2 + new Vector2(1f, 1f)) + new Vector2(-2f, -2f), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.02f);
-					b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2 + new Vector2(1f, 1f)) + new Vector2(-1f, -1f), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.02f);
-					b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2 + new Vector2(1f, 1f)) + new Vector2(-3.5f, -3.5f), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.02f);
-					b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2 + new Vector2(1f, 1f)) + new Vector2(-1.5f, -1.5f), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.02f);
-					b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2 + new Vector2(1f, 1f)) + new Vector2(-2.5f, -2.5f), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.02f);
+					if (Game1.dialogueFont != null)
+					{
+						b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2), Color.White, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.01f);
+						b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2 + new Vector2(1f, 1f)) + new Vector2(-3f, -3f), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.02f);
+						b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2 + new Vector2(1f, 1f)) + new Vector2(-2f, -2f), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.02f);
+						b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2 + new Vector2(1f, 1f)) + new Vector2(-1f, -1f), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.02f);
+						b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2 + new Vector2(1f, 1f)) + new Vector2(-3.5f, -3.5f), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.02f);
+						b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2 + new Vector2(1f, 1f)) + new Vector2(-1.5f, -1.5f), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.02f);
+						b.DrawString(Game1.dialogueFont, coinCount.ToString("00"), TransformDraw(draw_position2 + new Vector2(1f, 1f)) + new Vector2(-2.5f, -2.5f), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.02f);
+					}
 				}
 				//if (Game1.IsMultiplayer)
 				//{
@@ -6613,7 +6638,10 @@ namespace StardewValley.Minigames
 					draw_position2.X += 8f;
 					string level_text = string.Concat(levelsBeat + 1);
 					draw_position2.Y += 3f;
-					b.DrawString(Game1.dialogueFont, level_text, TransformDraw(draw_position2 - new Vector2(Game1.dialogueFont.MeasureString(level_text).X / 2f / 4f, 0f)), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1f);
+					if (Game1.dialogueFont != null)
+					{
+						b.DrawString(Game1.dialogueFont, level_text, TransformDraw(draw_position2 - new Vector2(Game1.dialogueFont.MeasureString(level_text).X / 2f / 4f, 0f)), Color.Black, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1f);
+					}
 					draw_position2.X += 1f;
 					draw_position2.Y += 1f;
 					draw_position2 = new Vector2(left_edge, 4f);
@@ -6646,7 +6674,10 @@ namespace StardewValley.Minigames
 				Vector2 draw_position3 = default(Vector2);
 				draw_position3.X = screenWidth / 2;
 				draw_position3.Y = screenHeight / 4;
-				b.DrawString(Game1.dialogueFont, current_text, TransformDraw(draw_position3 - new Vector2(Game1.dialogueFont.MeasureString(current_text).X / 2f / 4f, 0f)), Color.White, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1f);
+				if (Game1.dialogueFont != null)
+				{
+					b.DrawString(Game1.dialogueFont, current_text, TransformDraw(draw_position3 - new Vector2(Game1.dialogueFont.MeasureString(current_text).X / 2f / 4f, 0f)), Color.White, 0f, Vector2.Zero, GetPixelScale() / 4f, SpriteEffects.None, 0.1f);
+				}
 			}
 			//if (!Game1.options.hardwareCursor && !Game1.options.gamepadControls)
 			//{
@@ -6654,7 +6685,7 @@ namespace StardewValley.Minigames
 			//}
 			b.End();
 			Game1.isUsingBackToFrontSorting = false;
-			b.GraphicsDevice.ScissorRectangle = cached_scissor_rect;
+			//b.GraphicsDevice.ScissorRectangle = cached_scissor_rect;
 		}
 
 		public float GetPixelScale()

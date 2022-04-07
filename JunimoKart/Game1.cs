@@ -34,9 +34,12 @@ namespace JunimoKart
         internal static object currentMinigame;
         internal static bool isUsingBackToFrontSorting;
 
+        const int SPEED = 1;
+
+        public static AI AI = new PlayerAI();
         //public static AI AI = new RandomAI();
-        //public static AI AI = new PlayerAI();
-        public static AI AI = new SimpleAI();
+        //public static AI AI = new SimpleAI();
+        //public static AI AI = new JumpAI();
 
         public bool IsMainInstance { get { return true; } }
 
@@ -49,9 +52,25 @@ namespace JunimoKart
 
         public Game1()
         {
+            //var props = typeof(Color).GetProperties();
+            //string dict = "const colorDict = {";
+            //foreach (var prop in props)
+            //{
+            //    string name = prop.Name;
+            //    var value = prop.GetValue(Color.White);
+            //    if (!(value is Color)) continue;
+            //    Color color = (Color)value;
+            //    Console.WriteLine(name);
+            //    Console.WriteLine(value);
+            //    //Console.WriteLine(Color.White.ToVector4());
+            //    dict += $"'{name}': [{color.R}, {color.G}, {color.B}, {color.A}],";
+            //}
+            //dict += "};";
+            //Console.WriteLine(dict);
+
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferWidth = 1280;
-            graphics.PreferredBackBufferHeight = 720;
+            graphics.PreferredBackBufferWidth = 1200;
+            graphics.PreferredBackBufferHeight = 660;
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
             content = Content;
             Content.RootDirectory = "Content";
@@ -105,8 +124,7 @@ namespace JunimoKart
             base.Update(gameTime);
             currentGameTime = gameTime;
 
-            int speed = 100;
-            for (int i = 0; i < speed; i++)
+            for (int i = 0; i < SPEED; i++)
             {
                 input.UpdateStates();
                 cartGame.tick(gameTime);
