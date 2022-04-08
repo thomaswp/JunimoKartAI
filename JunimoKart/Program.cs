@@ -15,7 +15,7 @@ namespace JunimoKart
         [STAThread]
         static void Main()
         {
-            Game1 game = new Game1(Game1.MODE_PROGRESS, 1);
+            Game1 game = new Game1(Game1.MODE_PROGRESS, 0);
             game.Run();
         }
     }

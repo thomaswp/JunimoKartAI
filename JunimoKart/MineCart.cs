@@ -4122,21 +4122,21 @@ namespace StardewValley.Minigames
 			fadeDelta = -1f;
 			ResetState();
 			player.enabled = false;
-			setUpTheme(0);
+			if (gameMode == 3)
+			{
+				int fromTheme = LEVEL_TRANSITIONS.Where(t => t.destinationLevel == startTheme).First().startLevel;
+				setUpTheme(fromTheme);
+			}
+			else
+			{
+				setUpTheme(startTheme);
+			}
+			//setUpTheme(0);
 			levelThemesFinishedThisRun.Clear();
 			gameState = GameStates.Title;
 			CreateLakeDecor();
 			RefreshHighScore();
 			titleScreenJunimo = AddEntity(new MineDebris(new Rectangle(259, 492, 14, 20), new Vector2(screenWidth / 2 - 128 + 137, screenHeight / 2 - 35 + 46), 100f, 0f, 0f, 0f, 99999f, 1f, 1, 1f, 0.24f));
-            if (gameMode == 3)
-            {
-				// TODO: Doesn't work on all levels
-				setUpTheme(startTheme - 1);
-            }
-            else
-            {
-				setUpTheme(startTheme);
-            }
         }
 
 		public void RefreshHighScore()
@@ -5780,25 +5780,35 @@ namespace StardewValley.Minigames
 			MapJunimo map_junimo = AddEntity(new MapJunimo());
 			LevelTransition[] lEVEL_TRANSITIONS = LEVEL_TRANSITIONS;
 			int num = 0;
-			LevelTransition transition;
-			while (true)
+			// Start with the transition to the start level
+			LevelTransition transition = LEVEL_TRANSITIONS
+				.Where(t => t.startLevel == currentTheme && t.destinationLevel == startTheme)
+				.FirstOrDefault();
+			if (transition == null)
 			{
-				if (num < lEVEL_TRANSITIONS.Length)
+				while (true)
 				{
-					transition = lEVEL_TRANSITIONS[num];
-					if (transition.startLevel == currentTheme && (transition.shouldTakePath == null || transition.shouldTakePath()))
+					if (num < lEVEL_TRANSITIONS.Length)
 					{
-						break;
+						transition = lEVEL_TRANSITIONS[num];
+						if (transition.startLevel == currentTheme &&
+							// Always take the route to the start level
+							(transition.destinationLevel == startTheme ||
+							transition.shouldTakePath == null ||
+							transition.shouldTakePath()))
+						{
+							break;
+						}
+						num++;
+						continue;
 					}
-					num++;
-					continue;
+					return;
 				}
-				return;
 			}
 			map_junimo.position = new Vector2(((float)transition.startGridCoordinates.X + 0.5f) * (float)tileSize, ((float)transition.startGridCoordinates.Y + 0.5f) * (float)tileSize);
 			map_junimo.moveString = transition.pathString;
 			//Console.WriteLine(currentTheme + " to " + transition.destinationLevel);
-			currentTheme = transition.destinationLevel;
+            currentTheme = transition.destinationLevel;
 		}
 
 		public void ShowCutscene()

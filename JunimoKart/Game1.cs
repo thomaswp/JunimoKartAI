@@ -50,12 +50,17 @@ namespace JunimoKart
 
         public static long ticks { get { return currentGameTime.TotalGameTime.Ticks; } }
 
-        internal static Rectangle getSourceRectForStandardTileSheet(Texture2D debrisSpriteSheet, int v)
+        public static Rectangle getSourceRectForStandardTileSheet(Texture2D tileSheet, int tilePosition, int width = -1, int height = -1)
         {
-            throw new NotImplementedException();
+            int tileSize = 64;
+            if (width == -1)
+                width = tileSize;
+            if (height == -1)
+                height = tileSize;
+            return new Rectangle(tilePosition * width % tileSheet.Width, tilePosition * width / tileSheet.Width * height, width, height);
         }
 
-        public Game1(int mode = 2, int theme = 1)
+        public Game1(int mode = 2, int theme = 0)
         {
             //var props = typeof(Color).GetProperties();
             //string dict = "const colorDict = {";
