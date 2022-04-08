@@ -4125,7 +4125,8 @@ namespace StardewValley.Minigames
 			if (gameMode == 3)
 			{
 				int fromTheme = LEVEL_TRANSITIONS.Where(t => t.destinationLevel == startTheme).First().startLevel;
-				setUpTheme(fromTheme);
+				if (fromTheme == -1) fromTheme = 0;
+                setUpTheme(fromTheme);
 			}
 			else
 			{
@@ -4137,6 +4138,7 @@ namespace StardewValley.Minigames
 			CreateLakeDecor();
 			RefreshHighScore();
 			titleScreenJunimo = AddEntity(new MineDebris(new Rectangle(259, 492, 14, 20), new Vector2(screenWidth / 2 - 128 + 137, screenHeight / 2 - 35 + 46), 100f, 0f, 0f, 0f, 99999f, 1f, 1, 1f, 0.24f));
+			if (startTheme == 0 && gameMode == 3) currentTheme = -1;
         }
 
 		public void RefreshHighScore()
