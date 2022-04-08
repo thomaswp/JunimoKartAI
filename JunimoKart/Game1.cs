@@ -4,6 +4,7 @@ using System;
 using StardewValley.Minigames;
 using StardewValley;
 using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
 
 namespace JunimoKart
 {
@@ -131,10 +132,31 @@ namespace JunimoKart
             cartGame.draw(spriteBatch);
         }
 
+        private List<Keys> lastPressed = new List<Keys>();
+
         protected override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
             currentGameTime = gameTime;
+
+            List<Keys> newKeys = new List<Keys>();
+            foreach (var key in Keyboard.GetState().GetPressedKeys())
+            {
+                newKeys.Add(key);
+                if (!lastPressed.Contains(key))
+                {
+                    cartGame.receiveKeyPress(key);
+                }
+            }
+            foreach (var key in lastPressed)
+            {
+                if (!newKeys.Contains(key))
+                {
+                    cartGame.receiveKeyRelease(key);
+                }
+            }
+            lastPressed = newKeys;
+            
 
             for (int i = 0; i < SPEED; i++)
             {

@@ -4065,14 +4065,6 @@ namespace StardewValley.Minigames
 			_generatorRolls = new List<GeneratorRoll>();
 			_validObstacles = new Dictionary<ObstacleTypes, List<Type>>();
 			initLevelTransitions();
-			//if (Game1.player.team.junimoKartScores.GetScores().Count == 0)
-			//{
-			//	Game1.player.team.junimoKartScores.AddScore(Game1.getCharacterFromName("Lewis").displayName, 50000);
-			//	Game1.player.team.junimoKartScores.AddScore(Game1.getCharacterFromName("Shane").displayName, 25000);
-			//	Game1.player.team.junimoKartScores.AddScore(Game1.getCharacterFromName("Sam").displayName, 10000);
-			//	Game1.player.team.junimoKartScores.AddScore(Game1.getCharacterFromName("Abigail").displayName, 5000);
-			//	Game1.player.team.junimoKartScores.AddScore(Game1.getCharacterFromName("Vincent").displayName, 250);
-			//}
 			changeScreenSize();
 			texture = Game1.content.Load<Texture2D>("MineCart");
 			//if (Game1.soundBank != null)
@@ -4143,9 +4135,9 @@ namespace StardewValley.Minigames
 
 		public void RefreshHighScore()
 		{
-			//_currentHighScores = Game1.player.team.junimoKartScores.GetScores();
-			//currentHighScore = 0;
-			if (_currentHighScores.Count > 0)
+			_currentHighScores = HighScores.Get();
+			currentHighScore = 0;
+            if (_currentHighScores.Count > 0)
 			{
 				currentHighScore = _currentHighScores[0].Value;
 			}
@@ -5484,22 +5476,22 @@ namespace StardewValley.Minigames
 				fadeDelta = 1f;
 				if (gameMode == 2)
 				{
-					//if (Game1.player.team.junimoKartScores.GetScores()[0].Value < score)
-					//{
-					//	Game1.multiplayer.globalChatInfoMessage("JunimoKartHighScore", Game1.player.Name);
-					//}
-					//Game1.player.team.junimoKartScores.AddScore(Game1.player.name, score);
-					//if (Game1.player.team.specialOrders != null)
-					//{
-					//	foreach (SpecialOrder order in Game1.player.team.specialOrders)
-					//	{
-					//		if (order.onJKScoreAchieved != null)
-					//		{
-					//			order.onJKScoreAchieved(Game1.player, score);
-					//		}
-					//	}
-					//}
-					RefreshHighScore();
+					if (HighScores.Get()[0].Value < score)
+                    {
+                        //Game1.multiplayer.globalChatInfoMessage("JunimoKartHighScore", Game1.player.Name);
+                    }
+					HighScores.AddScore("Player", score);
+                    //if (Game1.player.team.specialOrders != null)
+                    //{
+                    //    foreach (SpecialOrder order in Game1.player.team.specialOrders)
+                    //    {
+                    //        if (order.onJKScoreAchieved != null)
+                    //        {
+                    //            order.onJKScoreAchieved(Game1.player, score);
+                    //        }
+                    //    }
+                    //}
+                    RefreshHighScore();
 				}
 				return;
 			}
@@ -5555,11 +5547,12 @@ namespace StardewValley.Minigames
 
 		public void receiveKeyPress(Keys k)
 		{
-			if (Game1.input.GetGamePadState().IsButtonDown(Buttons.Back) || k.Equals(Keys.Escape))
-			{
-				QuitGame();
-			}
-			else if (k.Equals(Keys.P) || k.Equals(Keys.Enter) || (false && Game1.input.GetGamePadState().IsButtonDown(Buttons.Start) && CanPause()))
+			//if (Game1.input.GetGamePadState().IsButtonDown(Buttons.Back) || k.Equals(Keys.Escape))
+			//{
+			//	QuitGame();
+			//}
+			//else 
+			if (k.Equals(Keys.P) || k.Equals(Keys.Escape) || (false && Game1.input.GetGamePadState().IsButtonDown(Buttons.Start) && CanPause()))
 			{
 				gamePaused = !gamePaused;
 				if (gamePaused)
@@ -6708,7 +6701,7 @@ namespace StardewValley.Minigames
 			if (gamePaused)
 			{
 				b.Draw(Game1.staminaRect, TransformDraw(new Rectangle(0, 0, screenWidth, screenHeight + tileSize)), null, Color.Black * 0.75f, 0f, Vector2.Zero, SpriteEffects.None, 0.145f);
-				string current_text = "$$"; // Game1.content.LoadString("Strings\\StringsFromCSFiles:DayTimeMoneyBox.cs.10378");
+				string current_text = "Paused"; // Game1.content.LoadString("Strings\\StringsFromCSFiles:DayTimeMoneyBox.cs.10378");
 				Vector2 draw_position3 = default(Vector2);
 				draw_position3.X = screenWidth / 2;
 				draw_position3.Y = screenHeight / 4;
