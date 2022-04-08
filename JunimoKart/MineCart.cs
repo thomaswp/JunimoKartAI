@@ -3934,7 +3934,7 @@ namespace StardewValley.Minigames
 
 		private int respawnCounter;
 
-		private int currentTheme;
+		private int currentTheme, startTheme;
 
 		private bool reachedFinish;
 
@@ -4086,7 +4086,7 @@ namespace StardewValley.Minigames
 			gameMode = mode;
 			bottomTile = screenHeight / tileSize - 1;
 			topTile = 4;
-			currentTheme = whichTheme;
+			startTheme = currentTheme = whichTheme;
 			ShowTitle();
 		}
 
@@ -4128,15 +4128,16 @@ namespace StardewValley.Minigames
 			CreateLakeDecor();
 			RefreshHighScore();
 			titleScreenJunimo = AddEntity(new MineDebris(new Rectangle(259, 492, 14, 20), new Vector2(screenWidth / 2 - 128 + 137, screenHeight / 2 - 35 + 46), 100f, 0f, 0f, 0f, 99999f, 1f, 1, 1f, 0.24f));
-			if (gameMode == 3)
-			{
-				setUpTheme(-1);
-			}
-			else
-			{
-				setUpTheme(0);
-			}
-		}
+            if (gameMode == 3)
+            {
+				// TODO: Doesn't work on all levels
+				setUpTheme(startTheme - 1);
+            }
+            else
+            {
+				setUpTheme(startTheme);
+            }
+        }
 
 		public void RefreshHighScore()
 		{
@@ -4383,7 +4384,31 @@ namespace StardewValley.Minigames
 				{
 					minecartLoop.Pause();
 				}
-				cutsceneText = "cutscene"; // Game1.content.LoadString("Strings\\UI:Junimo_Kart_Level_" + currentTheme);
+				/**
+				 *   "Junimo_Kart_Level_0": "Crumble Cavern",
+					  "Junimo_Kart_Level_1": "Slippery Slopes",
+					  "Junimo_Kart_Level_2": "The Gem Sea Giant",
+					  "Junimo_Kart_Level_3": "Ghastly Galleon",
+					  "Junimo_Kart_Level_4": "Red Hot Rollercoaster",
+					  "Junimo_Kart_Level_5": "Slomp's Stomp",
+					  "Junimo_Kart_Level_6": "Sunset Speedway",
+					  "Junimo_Kart_Level_8": "???",
+					  "Junimo_Kart_Level_9": "Glowshroom Grotto",
+				 */
+				string[] levels =
+                {
+					"Crumble Cavern",
+					"Slippery Slopes",
+					"The Gem Sea Giant",
+					"Ghastly Galleon",
+					"Red Hot Rollercoaster",
+					"Slomp's Stomp",
+					"Sunset Speedway",
+					"?!?!",
+					"???",
+					"Glowshroom Grotto",
+                };
+				cutsceneText = levels[currentTheme]; // Game1.content.LoadString("Strings\\UI:Junimo_Kart_Level_" + currentTheme);
 				if (currentTheme == 7)
 				{
 					cutsceneText = "";
@@ -5129,7 +5154,7 @@ namespace StardewValley.Minigames
 					{
 						levelsBeat = 0;
 						coinCount = 0;
-						setUpTheme(0);
+						setUpTheme(startTheme);
 						restartLevel(new_game: true);
 					}
 					return false;
@@ -5772,6 +5797,7 @@ namespace StardewValley.Minigames
 			}
 			map_junimo.position = new Vector2(((float)transition.startGridCoordinates.X + 0.5f) * (float)tileSize, ((float)transition.startGridCoordinates.Y + 0.5f) * (float)tileSize);
 			map_junimo.moveString = transition.pathString;
+			//Console.WriteLine(currentTheme + " to " + transition.destinationLevel);
 			currentTheme = transition.destinationLevel;
 		}
 

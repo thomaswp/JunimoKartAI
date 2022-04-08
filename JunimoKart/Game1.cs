@@ -25,14 +25,19 @@ namespace JunimoKart
         internal static Game1 game1;
         internal static InputState input;
 
-        GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
-
-        MineCart cartGame;
         internal static PlayerIndex playerOneIndex = PlayerIndex.One;
         internal static ICue minecartLoop = new ICue();
         internal static object currentMinigame;
         internal static bool isUsingBackToFrontSorting;
+
+        GraphicsDeviceManager graphics;
+        SpriteBatch spriteBatch;
+
+        MineCart cartGame;
+        int mode, theme;
+
+        public const int MODE_ENDLESS = 2;
+        public const int MODE_PROGRESS = 3;
 
         const int SPEED = 1;
 
@@ -50,7 +55,7 @@ namespace JunimoKart
             throw new NotImplementedException();
         }
 
-        public Game1()
+        public Game1(int mode = 2, int theme = 1)
         {
             //var props = typeof(Color).GetProperties();
             //string dict = "const colorDict = {";
@@ -68,6 +73,8 @@ namespace JunimoKart
             //dict += "};";
             //Console.WriteLine(dict);
 
+            this.mode = mode;
+            this.theme = theme;
             graphics = new GraphicsDeviceManager(this);
             graphics.PreferredBackBufferWidth = 1200;
             graphics.PreferredBackBufferHeight = 660;
@@ -105,7 +112,7 @@ namespace JunimoKart
 
             if (cartGame == null)
             {
-                cartGame = new MineCart(0, 2);
+                cartGame = new MineCart(theme, mode);
             }
 
         }
@@ -114,7 +121,7 @@ namespace JunimoKart
         {
             base.Draw(gameTime);
             currentGameTime = gameTime;
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
             currentGameTime = gameTime;
             cartGame.draw(spriteBatch);
         }
